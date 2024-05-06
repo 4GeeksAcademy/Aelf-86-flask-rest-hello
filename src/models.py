@@ -20,16 +20,17 @@ class User(db.Model):
             # do not serialize the password, its a security breach
         }  
 
-#People 
-class People(db.Model):
+#characters
+class Character(db.Model):
+    
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(120), unique=True, nullable=False)
-    height = db.Column(db.String(80), unique=False, nullable=False)
-    hair_color = db.Column(db.Boolean(80), unique=False, nullable=False)
+    height = db.Column(db.String(80))
+    hair_color = db.Column(db.String(80))
     favourites = db.relationship("Favourites")
 
     def __repr__(self):
-        return '<People %r>' % self.name
+        return '<Character %r>' % self.name
 
     def serialize(self):
         return {
@@ -61,10 +62,11 @@ class Planets(db.Model):
 
         }
 
+#Favourites
 class Favourites(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     user_id = db.Column(db.Integer, db.ForeignKey("user.id"))
-    people_id = db.Column(db.Integer, db.ForeignKey("people.id"))
+    characters_id = db.Column(db.Integer, db.ForeignKey("character.id"))
     planets_id = db.Column(db.Integer, db.ForeignKey("planets.id"))
 
 
@@ -74,7 +76,7 @@ class Favourites(db.Model):
     def serialize(self):
         return {
             "id": self.id,
-            "people_id": self.people_id,
+            "characters_id": self.characters_id,
             "planet_id": self.planet_id,
             "user_id": self.user_id
 
