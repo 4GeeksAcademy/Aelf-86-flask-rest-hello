@@ -42,12 +42,12 @@ def sitemap():
 
 #1-GET methods
     #1.1-GET methods for user
-@app.route('/user', methods=['GET'])
+@app.route('/users', methods=['GET'])
 def handle_hello():
 
     users = User.query.all()
     if users == []:
-        return jsonify({"msg":"user does not exist"}), 404
+        return jsonify({"msg":"users does not exist"}), 404
     
     response_body = list(map(lambda x:x.serialize(),users))
 
@@ -64,7 +64,6 @@ def get_users_by_name(user_name):
         return jsonify(user_list), 200
     else:
         return jsonify({"Error": "No se encontraron usuarios con ese nombre"}), 400
-
 
     #1.3-GET methods for characters 
 @app.route('/character', methods=['GET'])       
@@ -98,23 +97,66 @@ def show_planets():
     return jsonify(response_body), 200 
 
 
+#1.6 GET methods for single planet
+@app.route('/planet/<int:planet_id>', methods=['GET'])       
+def show_single_planet(planet_id):
+    planets = Planets.query.filter_by(id = planet_id).first() 
+    if planets is None:
+        return jsonify({"msg":"This planet does not exist"}), 404
+    
+    return jsonify(planets.serialize()),200
+
 #2-POST methods
-@app.route('/planets', methods=['POST'])       
-def add_planets():
-    body = json.loads(request.data)
-    new_planets = Planets(
-        planet_name = body ["planet_name"], 
-        diameter = body ["diameter"],
-        population = body ["population"]
+    #2.1-POST favourite planet method
+@app.route('/user/<int:user_id>/favorite/planets/<int:planets_id>', methods=['POST'])       
+def add_planets(user_id,planets_id):
+    new_favourite_planets = Favourites(
+        user_id = user_id,
+        planets_id = planets_id
     )
-    db.session.add(new_planets)
+    db.session.add(new_favourite_planets)
     db.session.commit()
 
-    return jsonify({"msg": "Saved planet"}), 200
+    return jsonify({"msg": "Planet added to favourites"}), 200
+
+#2.2-POST favourite character method
+@app.route('/user/<int:user_id>/favorite/characters/<int:characters_id>', methods=['POST'])       
+def add_characters(user_id,characters_id):
+    new_favourite_character = Favourites(
+        user_id = user_id,
+        characters_id = characters_id
+    )
+    db.session.add(new_favourite_character)
+    db.session.commit()
+
+    return jsonify({"msg": "Character added to favourites"}), 200
 
 
 
+#3-DELETE method
+#3.1 DELETE favourite planet method
+@app.route('/user/<int:user_id>/favorite/planets/<int:planets_id>', methods=['DELETE'])       
+def delete_single_planet(user_id, planets_id):
+    delete_planets = Favourites.query.filter_by( user_id = user_id,
+        planets_id = planets_id).first() 
+    if delete_planets is None:
+        return jsonify({"msg":"This planet no longer exists"}), 404
+    db.session.delete(delete_planets)
+    db.session.commit()
 
+    return jsonify({"msg": "Planet deleted from favourites"}), 200
+
+#3.1 DELETE favourite character method
+@app.route('/user/<int:user_id>/favorite/characters/<int:characters_id>', methods=['DELETE'])       
+def delete_single_character(user_id, characters_id):
+    delete_character = Favourites.query.filter_by( user_id = user_id,
+        characters_id = characters_id).first() 
+    if delete_character is None:
+        return jsonify({"msg":"This character does not exist"}), 404
+    db.session.delete(delete_character)
+    db.session.commit()
+
+    return jsonify({"msg": "Planet deleted from favourites"}), 200
 
 # this only runs if `$ python src/app.py` is executed
 if __name__ == '__main__':
